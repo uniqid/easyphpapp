@@ -1,2 +1,0 @@
-# easyphpapp
-easy php app
