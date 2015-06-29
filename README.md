@@ -1,2 +1,2 @@
-# easywebapi
-easy web api
+# easyphpapp
+easy php app
