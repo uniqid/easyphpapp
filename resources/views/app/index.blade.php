@@ -69,6 +69,7 @@
     function app_tab_open(id, title, url){
         $('body').layout('panel', 'center').panel('setTitle', title);
         var src = url === false? '/menutree/' + id: url;
+        title = '<span data-src="'+src.replace('"', '')+'">' + title + '</span>';
         if($('#app-main-tabs').tabs('exists', title)){
             $('#app-main-tabs').tabs('select', title);
         }else{

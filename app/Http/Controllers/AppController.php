@@ -59,7 +59,7 @@ class AppController extends BaseController {
     /**
      * Add menu
      */
-    public function any_menuadd(Request $req){
+    public function any_menuadd(Request $req, $pid = 0){
         if($req->isMethod('post')){
             $data = $req->only('pid', 'name', 'url', 'orderby', 'is_show');
             $default = array('id_path'=>'', 'level'=>0, 'status'=>0, 'created'=>time());
@@ -75,7 +75,7 @@ class AppController extends BaseController {
             $this->db_insert($sql, array_values($data));
             return $this->success($data);
         } else {
-            return view('app.menuadd');
+            return view('app.menuadd', ['pid' => $pid]);
         }
     }
     

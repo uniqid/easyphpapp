@@ -16,6 +16,7 @@ Route::controller('/api/', 'ApiController');
 
 //AppController
 Route::get('/menutree/{id}', 'AppController@get_menutree')->where('id', '[0-9]+');
+Route::get('/menuadd/{pid}', 'AppController@any_menuadd')->where('pid', '[0-9]+');
 Route::get('/menuedit/{id}', 'AppController@any_menuedit')->where('id', '[0-9]+');
 Route::controller('/', 'AppController');
 

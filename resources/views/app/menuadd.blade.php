@@ -45,7 +45,7 @@
             <tr>
                 <td>上级菜单:</td>
                 <td>
-                    <input class="easyui-combotree" name="pid" value="0" data-options="url:'/menutree/-1',method:'get',required:true" style="width:60%;">
+                    <input class="easyui-combotree" name="pid" value="<?php echo $pid; ?>" data-options="url:'/menutree/-1',method:'get',required:true" style="width:60%;">
                 </td>
             </tr>
             <tr>

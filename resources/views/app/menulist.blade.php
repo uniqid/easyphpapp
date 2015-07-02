@@ -30,15 +30,19 @@
             btn.push('<a href="javascript:void(0);" onclick="action_edit('+r.id+')">修改</a>');
             btn.push('<a href="javascript:void(0);" onclick="action_delete('+r.id+')">删除</a>');
         }
-        
+        btn.push('<a href="javascript:void(0);" onclick="action_add('+r.id+')">添加子菜单</a>');
         return btn.join(' | ');
     }
     function orderby_formatter(v,r){
         return '<input type="text" onblur="action_orderby('+r.id+',this)" value="'+v+'" data="'+v+'" size="8" style="text-align:center">';
     }
     
-    function action_add(){
-        iframe_dialog($('#dialog_add'), {href:'/menuadd'});
+    function action_add(pid){
+        if(typeof pid === 'number'){
+            iframe_dialog($('#dialog_add'), {href:'/menuadd/'+pid});
+        } else {
+            iframe_dialog($('#dialog_add'), {href:'/menuadd'});
+        }
     }
     
     function action_edit(id){
