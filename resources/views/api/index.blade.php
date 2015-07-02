@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Greeting</title>
+        <title><?php echo $title; ?></title>
         <style>
             html, body {
                 height: 100%;
@@ -39,6 +39,11 @@
         </style>
     </head>
     <body>
-        <h1>Hello, <?php echo $name; ?></h1>
+        <div class="container">
+            <div class="content">
+                <div class="title">API</div>
+                <div class="quote">{{ Inspiring::quote() }}</div>
+            </div>
+        </div>
     </body>
 </html>
