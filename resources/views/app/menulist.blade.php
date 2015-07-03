@@ -1,25 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="UTF-8">
-	<title>菜单列表</title>
-	<link rel="stylesheet" type="text/css" href="/jeasyui/themes/default/easyui.css" data-theme="default" />
-	<link rel="stylesheet" type="text/css" href="/jeasyui/themes/black/easyui.css" data-theme="black" />
-	<link rel="stylesheet" type="text/css" href="/jeasyui/themes/bootstrap/easyui.css" data-theme="bootstrap" />
-	<link rel="stylesheet" type="text/css" href="/jeasyui/themes/gray/easyui.css" data-theme="gray" />
-	<link rel="stylesheet" type="text/css" href="/jeasyui/themes/metro/easyui.css" data-theme="metro" />
-	<link rel="stylesheet" type="text/css" href="/jeasyui/themes/icon.css" />
-	<link rel="stylesheet" type="text/css" href="/jeasyui/app.css" />
-	<script type="text/javascript" src="/jeasyui/jquery.min.js"></script>
-	<script type="text/javascript" src="/js/js.cookie.js"></script>
-	<script type="text/javascript" src="/jeasyui/jquery.easyui.min.js"></script>
-	<script type="text/javascript" src="/jeasyui/app.js"></script>
+@extends('layout.app')
+@section('title', '菜单管理')
+@section('stylesheet')
+@parent
+@endsection
+@section('javascript')
+@parent
     <script type="text/javascript">
-    var theme = Cookies.get('theme') || 'default';
     $(document).ready(function(){
-        $('link[rel*=style][data-theme]').each(function(i){
-            this.disabled = !(this.getAttribute('data-theme') == theme);
-        });
+        app_theme_set(theme);
     });
     function action_formatter(v,r){
         var btn = [];
@@ -27,60 +15,26 @@
             btn.push('<span class="disable">修改</span>');
             btn.push('<span class="disable">删除</span>');
         } else {
-            btn.push('<a href="javascript:void(0);" onclick="action_edit('+r.id+')">修改</a>');
+            btn.push('<a href="javascript:void(0);" onclick="action_upsert('+r.id+')">修改</a>');
             btn.push('<a href="javascript:void(0);" onclick="action_delete('+r.id+')">删除</a>');
         }
-        btn.push('<a href="javascript:void(0);" onclick="action_add('+r.id+')">添加子菜单</a>');
+        btn.push('<a href="javascript:void(0);" onclick="action_upsert(0,'+r.id+')">添加子菜单</a>');
         return btn.join(' | ');
     }
-    function orderby_formatter(v,r){
-        return '<input type="text" onblur="action_orderby('+r.id+',this)" value="'+v+'" data="'+v+'" size="8" style="text-align:center">';
+    function action_upsert(id, pid){
+        (typeof id  !== 'number') && (id  = 0);
+        (typeof pid !== 'number') && (pid = 0);
+        iframe_dialog($('#dialog_upsert'), {href:'/menuupsert/'+id+'/'+pid});
     }
-    
-    function action_add(pid){
-        if(typeof pid === 'number'){
-            iframe_dialog($('#dialog_add'), {href:'/menuadd/'+pid});
-        } else {
-            iframe_dialog($('#dialog_add'), {href:'/menuadd'});
-        }
-    }
-    
-    function action_edit(id){
-        iframe_dialog($('#dialog_edit'), {href:'/menuedit/'+id});
-    }
-    
     function action_delete(id){
-        $.messager.confirm('提示信息', '该操作将删除该菜单及其子菜单，确定要删除吗？', function(result){
-            if(!result) return false;
-            $.post('menudelete', {id: id,_token:'{!! csrf_token() !!}'}, function(res){
-                if(res.status > 0){
-                    $.messager.alert('提示信息', '删除失败', 'error');
-                }else{
-                    //$.messager.alert('提示信息', '删除成功', 'info');
-                    grid_reflesh();
-                }
-            }, 'json');
-        });
+        _action_delete('/menudelete', id, '该操作将删除该菜单及其子菜单，确定要删除吗？', _token);
     }
-    
     function action_orderby(id, _this){
-        if($(_this).attr('data') == _this.value){
-            return;
-        }
-        $.post('/menuorderby', {id:id,orderby:_this.value,_token:'{!! csrf_token() !!}'}, function(res){
-            if(res.status > 0){
-                $.messager.alert('提示信息', '设置失败', 'error');
-            } else {
-                $(_this).attr('data', _this.value);
-                grid_reflesh();
-            }
-        }, 'json');
-    }
-    function grid_reflesh(){
-        $('table.easyui-treegrid').treegrid('reload');
+        _action_orderby('/menuorderby', id, _this, _token);
     }
     </script>
-</head>
+@endsection
+@section('body')
 <body style="padding:5px;">
     <table class="easyui-treegrid" style="width:100%;height:auto;"
             data-options="
@@ -88,7 +42,7 @@
                 idField: 'id',
                 treeField: 'name',
                 fit:true,
-                toolbar:[{text:'Add',iconCls:'icon-add',handler:action_add},'-',{text:'Reload',iconCls:'icon-reload',handler:grid_reflesh}]
+                toolbar:[{text:'Add',iconCls:'icon-add',handler:action_upsert},'-',{text:'Reload',iconCls:'icon-reload',handler:grid_reflesh}]
             ">
         <thead>
             <tr>
@@ -101,8 +55,6 @@
             </tr>
         </thead>
     </table>
-    
-    <div id="dialog_add"  class="easyui-dialog" title="添加" data-options="modal:true,closed:true,iconCls:'icon-add'"  style="width:700px;height:432px;"></div>
-    <div id="dialog_edit" class="easyui-dialog" title="修改" data-options="modal:true,closed:true,iconCls:'icon-edit'" style="width:700px;height:432px;"></div>
+    <div id="dialog_upsert" class="easyui-dialog" title="菜单管理" data-options="modal:true,closed:true,iconCls:'icon-edit'" style="width:700px;height:432px;"></div>
 </body>
-</html>
+@endsection

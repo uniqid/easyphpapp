@@ -23,6 +23,7 @@ class AppController extends BaseController {
      * 2.Combox tree
      */
     public function get_menutree($id=0){
+        $id = intval($id);
         if($id == -1){ //combox tree
             $menus = $this->db_list('select id,name as text,id_path,url from menus where status=0 
                      order by level desc, orderby, id');
@@ -57,32 +58,11 @@ class AppController extends BaseController {
     }
     
     /**
-     * Add menu
+     * Menu upsert
      */
-    public function any_menuadd(Request $req, $pid = 0){
-        if($req->isMethod('post')){
-            $data = $req->only('pid', 'name', 'url', 'orderby', 'is_show');
-            $default = array('id_path'=>'', 'level'=>0, 'status'=>0, 'created'=>time());
-            if($data['pid'] != 0){
-                $menu = $this->db_get('select level,id_path from menus where id=:id', ['id' => $data['pid']]);
-                if(!empty($menu)){
-                    $data['level']   = $menu->level + 1;
-                    $data['id_path'] = $menu->id_path.$data['pid'].'-';
-                }
-            }
-            $data = array_merge($default, $data);
-            $sql  = 'insert into menus('.implode(',', array_keys($data)).') values('.trim(str_repeat("?,", count($data)), ",").')';
-            $this->db_insert($sql, array_values($data));
-            return $this->success($data);
-        } else {
-            return view('app.menuadd', ['pid' => $pid]);
-        }
-    }
-    
-    /**
-     * Update menu
-     */
-    public function any_menuedit(Request $req, $id=0){
+    public function any_menuupsert(Request $req, $id=0, $pid = 0){
+        $id  = intval($id);
+        $pid = intval($pid);
         if($req->isMethod('post')){
             $data = $req->only('pid', 'name', 'url', 'orderby', 'is_show');
             $default = array('id_path'=>'', 'level'=>0);
@@ -91,16 +71,18 @@ class AppController extends BaseController {
                 if(!empty($pmenu)){
                     $data['level']   = $pmenu->level + 1;
                     $data['id_path'] = $pmenu->id_path.$data['pid'].'-';
+                } else {
+                    $data['pid'] = 0;
                 }
             }
             $data = array_merge($default, $data);
             
-            $id = $req->input('id');
-            $menu = $this->db_get('select id, pid, id_path, level from menus where is_sys=0 and id=:id', ['id' => $id]);
-            if(!empty($menu)){
+            $id  = $req->input('id');
+            $row = $id>0? $this->db_get('select id,pid,id_path,level from menus where is_sys=0 and id=:id', ['id' => $id]): array();
+            if(!empty($row)){
                 $this->db_edit('menus', $id, $data);
                 $new_menu = (object)array('id_path' => $data['id_path'], 'level' => $data['level']);
-                $this->_submenu_update($menu, $new_menu);
+                $this->_submenu_update($row, $new_menu);
             } else {
                 $data['status']  = 0;
                 $data['created'] = time();
@@ -108,9 +90,9 @@ class AppController extends BaseController {
             }
             return $this->success($data);
         } else {
-            $menu = $this->db_get('select id, pid, name, url, orderby, is_show from menus where is_sys=0 and id=:id', ['id' => $id]);
-            return view('app.menuedit', [
-                'menu' => json_encode(!empty($menu)? $menu: array())
+            $data = $this->db_get('select id, pid, name, url, orderby, is_show from menus where is_sys=0 and id=:id', ['id' => $id]);
+            return view('app.menuupsert', [
+                'data' => json_encode(!empty($data)? $data: array('pid' => $pid))
             ]);
         }
     }
@@ -163,6 +145,68 @@ class AppController extends BaseController {
             $this->db_edit('menus', $menu->id, $data);
         }
         return true;
+    }
+
+    
+    /**
+     * Field list
+     */
+    public function any_fieldlist(Request $req){
+        $menus = $this->db_list('select * from fields where status=0 order by orderby, id');
+        if($req->isMethod('post')){
+            return json_encode($menus);
+        } else {
+            return view('app.fieldlist');
+        }
+    }
+    
+    /**
+     * Field upsert
+     */
+    public function any_fieldupsert(Request $req, $id = 0){
+        $id = intval($id);
+        if($req->isMethod('post')){
+            $data = $req->only('name','type','minlength','maxlength','defaultval','required','options','comment','orderby');
+            if(!empty($data['options'])){
+                $tmp_opts = preg_split('/[,，]/', $data['options']);
+                $options  = array();
+                foreach($tmp_opts as $opt){
+                    $k_v = array_map('trim', explode('|', trim($opt)));
+                    if(count($k_v) === 2){
+                        list($k, $v) = $k_v;
+                        if(strlen($k) && strlen($v)){
+                            $options[$k] = preg_replace('/[\r\n]/is', ' ', $v);
+                        }
+                    }
+                }
+                $data['options'] = empty($options)? '': json_encode($options);
+            }
+            $id   = $req->input('id');
+            $row  = $id>0? $this->db_get('select id from fields where id=:id', ['id' => $id]): array();
+            if(!empty($row)){
+                $this->db_edit('fields', $id, $data);
+            } else {
+                $data['status']  = 0;
+                $data['created'] = time();
+                $this->db_add('fields', $data);
+            }
+            return $this->success($data);
+        } else {
+            $data = $this->db_get('select * from fields where id=:id', ['id' => $id]);
+            if(!empty($data) && strlen($data->options)){
+                $opts = json_decode($data->options, true);
+                $options = '';
+                if(!empty($opts)){
+                    foreach($opts as $key => $val){
+                        $options .= ",\n" . $key .'|'. $val;
+                    }
+                }
+                $data->options = trim($options, ",\n");
+            }
+            return view('app.fieldupsert', [
+                'data' => json_encode(!empty($data)? $data: array())
+            ]);
+        }
     }
     
     /**
@@ -223,9 +267,14 @@ class AppController extends BaseController {
 
         //init system submenu
         $menu = $this->db_get('select id from menus where level=0 and status=0 and name="系统"');
-        $data = array('name' => '菜单管理', 'pid' => $menu->id, 'id_path' => $default['id_path'].$menu->id.'-', 'level' => 1, 'url' => 'menulist');
-        $data = array_merge($default, $data);
-        $this->db_add('menus', $data);
+        $data = array('pid' => $menu->id, 'id_path' => $default['id_path'].$menu->id.'-', 'level' => 1);
+        $submenus = array(
+            array('name' => '菜单管理', 'url' => 'menulist'),
+            array('name' => '字段管理', 'url' => 'fieldlist')
+        );
+        foreach($submenus as $_menu){
+            $this->db_add('menus', array_merge($default, $data, $_menu));
+        }
         
         return $this->db_list('select id,name from menus where level=0 and status=0');
     }

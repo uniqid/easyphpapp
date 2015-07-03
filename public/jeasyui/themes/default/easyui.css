@@ -529,7 +529,7 @@
   border: 0;
   margin: 0;
   padding: 4px;
-  white-space: normal;
+  /*white-space: normal;*/
   vertical-align: top;
   outline-style: none;
   resize: none;
