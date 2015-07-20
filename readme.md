@@ -1,5 +1,6 @@
 # easyphpapp
-easy php app
+
+easy php app base on Laravel & jQuery easyui
 
 
 ## Laravel PHP Framework
