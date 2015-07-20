@@ -2,9 +2,9 @@
 @section('title', '字段管理')
 @section('stylesheet')
 @parent
-<style>
-table.text .hidden,table.textarea .hidden,table.password .hidden,table.file .hidden{display:none;}
-</style>
+    <style>
+        table.text .hidden,table.textarea .hidden,table.password .hidden{display:none;}
+    </style>
 @endsection
 @section('javascript')
 @parent
@@ -15,10 +15,24 @@ table.text .hidden,table.textarea .hidden,table.password .hidden,table.file .hid
         $('#data_form').form('load', <?php echo $data; ?>);
     });
     function switch_options(){
-        $('#data_form').find('table').attr('class', $(this).combobox('getValue'));
+        var val = $(this).combobox('getValue');
+        $('#data_form').find('table').attr('class', val);
+        var options = '';
+        if(val === 'select'){
+            options = '';
+        } else if (val === 'radio'){
+            options = '';
+        } else if (val === 'checkbox'){
+            options = '';
+        } else if (val === 'file'){
+            options  = 'ext|.png,.jpg,.jpeg,.bmp,.gif;'+"\n";
+            options += 'size|5120';
+        }
+        $('#data_form').form('load', {'options':options});
     }
     </script>
 @endsection
+@section('body')
 <body style="padding:5px;">
 <div class="easyui-panel" style="width:auto;">
     <div style="padding:10px 60px 20px 60px">
@@ -82,4 +96,4 @@ table.text .hidden,table.textarea .hidden,table.password .hidden,table.file .hid
     <a href="javascript:void(0)" class="easyui-linkbutton" onclick="form_submit('/fieldupsert')">保存</a>
 </div>
 </body>
-</html>
+@endsection

@@ -12,6 +12,7 @@
     });
     </script>
 @endsection
+@section('body')
 <body style="padding:5px;">
 <div class="easyui-panel" style="width:auto;">
     <div style="padding:10px 60px 20px 60px">
@@ -51,4 +52,4 @@
     <a href="javascript:void(0)" class="easyui-linkbutton" onclick="form_submit('/menuupsert')">保存</a>
 </div>
 </body>
-</html>
+@endsection

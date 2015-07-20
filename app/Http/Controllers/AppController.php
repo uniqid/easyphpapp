@@ -168,7 +168,7 @@ class AppController extends BaseController {
         if($req->isMethod('post')){
             $data = $req->only('name','type','minlength','maxlength','defaultval','required','options','comment','orderby');
             if(!empty($data['options'])){
-                $tmp_opts = preg_split('/[,，]/', $data['options']);
+                $tmp_opts = preg_split('/[;；]/', $data['options']);
                 $options  = array();
                 foreach($tmp_opts as $opt){
                     $k_v = array_map('trim', explode('|', trim($opt)));
@@ -198,10 +198,10 @@ class AppController extends BaseController {
                 $options = '';
                 if(!empty($opts)){
                     foreach($opts as $key => $val){
-                        $options .= ",\n" . $key .'|'. $val;
+                        $options .= ";\n" . $key .'|'. $val;
                     }
                 }
-                $data->options = trim($options, ",\n");
+                $data->options = trim($options, ";\n");
             }
             return view('app.fieldupsert', [
                 'data' => json_encode(!empty($data)? $data: array())
