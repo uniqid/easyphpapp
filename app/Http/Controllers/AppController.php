@@ -152,9 +152,9 @@ class AppController extends BaseController {
      * Field list
      */
     public function any_fieldlist(Request $req){
-        $menus = $this->db_list('select * from fields where status=0 order by orderby, id');
+        $fields = $this->db_list('select * from fields where status=0 order by orderby, id');
         if($req->isMethod('post')){
-            return json_encode($menus);
+            return json_encode($fields);
         } else {
             return view('app.fieldlist');
         }
@@ -207,6 +207,59 @@ class AppController extends BaseController {
                 'data' => json_encode(!empty($data)? $data: array())
             ]);
         }
+    }
+    
+    /**
+     * Field orderby
+     */
+    public function post_fieldorderby(Request $req){
+        return $this->_orderby($req, 'fields');
+    }
+    
+    /**
+     * Form list
+     */
+    public function any_formlist(Request $req){
+        $forms = $this->db_list('select * from forms where status=0 order by orderby, id');
+        if($req->isMethod('post')){
+            return json_encode($forms);
+        } else {
+            return view('app.formlist');
+        }
+    }
+    
+    /**
+     * Form upsert
+     */
+    public function any_formupsert(Request $req, $id = 0){
+        $id = intval($id);
+        if($req->isMethod('post')){
+            $data = $req->only('name','type','orderby');
+            $id   = $req->input('id');
+            $row  = $id>0? $this->db_get('select id from forms where id=:id', ['id' => $id]): array();
+            if(!empty($row)){
+                $this->db_edit('forms', $id, $data);
+            } else {
+                $data['status']  = 0;
+                $data['created'] = time();
+                $this->db_add('forms', $data);
+            }
+            return $this->success($data);
+        } else {
+            $data   = $this->db_get('select * from forms where id=:id', ['id' => $id]);
+            $fields = $this->db_list('select * from fields where status=0 order by orderby, id');
+            return view('app.formupsert', [
+                'data'   => json_encode(!empty($data)? $data: array()),
+                'fields' => !empty($fields)? $fields: array()
+            ]);
+        }
+    }
+    
+    /**
+     * Form orderby
+     */
+    public function post_formorderby(Request $req){
+        return $this->_orderby($req, 'forms');
     }
     
     /**
@@ -270,12 +323,27 @@ class AppController extends BaseController {
         $data = array('pid' => $menu->id, 'id_path' => $default['id_path'].$menu->id.'-', 'level' => 1);
         $submenus = array(
             array('name' => '菜单管理', 'url' => 'menulist'),
-            array('name' => '字段管理', 'url' => 'fieldlist')
+            array('name' => '字段管理', 'url' => 'fieldlist'),
+            array('name' => '表单管理', 'url' => 'formlist')
         );
         foreach($submenus as $_menu){
             $this->db_add('menus', array_merge($default, $data, $_menu));
         }
         
         return $this->db_list('select id,name from menus where level=0 and status=0');
+    }
+    
+    /**
+     * Update orderby field
+     */
+    private function _orderby(Request $req, $table){
+        $id   = $req->input('id');
+        $data = $req->only('orderby');
+        $row  = $id>0? $this->db_get('select id from '.$table.' where id=:id', ['id' => $id]): array();
+        if(!empty($row)){
+            $this->db_edit($table, $id, $data);
+            return $this->success($data);
+        }
+        return $this->error('参数错误');
     }
 }

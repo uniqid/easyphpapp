@@ -53,7 +53,7 @@ function yes_or_no_formatter(v){
     return v? '是': '否';
 }
 function orderby_formatter(v,r){
-    return '<input type="text" onblur="action_orderby('+r.id+',this)" value="'+v+'" data="'+v+'" size="8" style="text-align:center">';
+    return '<input type="text" onchange="action_orderby('+r.id+',this)" value="'+v+'" size="8" style="text-align:center">';
 }
 function grid_reflesh(){
     if($('table.easyui-datagrid').length > 0){
@@ -77,14 +77,10 @@ function _action_delete(url, id, tip, token){
     });
 }
 function _action_orderby(url, id, _this, token){
-    if($(_this).attr('data') == _this.value){
-        return;
-    }
     $.post(url, {id:id,orderby:_this.value,_token:token}, function(res){
         if(res.status > 0){
             $.messager.alert('提示信息', '设置失败', 'error');
         } else {
-            $(_this).attr('data', _this.value);
             grid_reflesh();
         }
     }, 'json');

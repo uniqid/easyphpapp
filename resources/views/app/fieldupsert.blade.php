@@ -15,18 +15,20 @@
         $('#data_form').form('load', <?php echo $data; ?>);
     });
     function switch_options(){
-        var val = $(this).combobox('getValue');
+        var val  = $(this).combobox('getValue');
+        var data = <?php echo $data; ?>;
         $('#data_form').find('table').attr('class', val);
+        if(typeof data.id != 'undefined' && data.type == val){
+            $('#data_form').form('load', {'options':data.options});
+            return;
+        }
         var options = '';
-        if(val === 'select'){
-            options = '';
-        } else if (val === 'radio'){
-            options = '';
-        } else if (val === 'checkbox'){
-            options = '';
+        if(val === 'select' || val === 'radio' || val === 'checkbox'){
+            options  = 'option1|value1'+"\n";
+            options += 'option2|value2';
         } else if (val === 'file'){
             options  = 'ext|.png,.jpg,.jpeg,.bmp,.gif;'+"\n";
-            options += 'size|5120';
+            options += 'size|2048';
         }
         $('#data_form').form('load', {'options':options});
     }
